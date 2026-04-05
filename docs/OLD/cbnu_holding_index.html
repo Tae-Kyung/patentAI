@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>충북대학교기술지주 AI 창업 플랫폼</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // --- SVG Icon Components (lucide-react 대체) ---
+        const IconRocket = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
+        );
+        const IconBarChart3 = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
+        );
+        const IconCpu = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+        );
+        const IconBriefcase = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        );
+        const IconTrendingUp = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+        );
+        const IconFileText = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        );
+        const IconBuilding2 = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
+        );
+        const IconUsers = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        );
+        const IconChevronRight = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"></polyline></svg>
+        );
+        const IconBell = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        );
+        const IconUser = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        );
+        const IconPlusCircle = ({ size=24, className="", strokeWidth=2 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+        );
+        const IconCheckCircle2 = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="9 12 11 14 15 10"></polyline></svg>
+        );
+        const IconClock = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        );
+
+        // --- 새롭게 추가된 아이콘들 ---
+        const IconUploadCloud = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m16 16-4-4-4 4"></path></svg>
+        );
+        const IconSparkles = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path></svg>
+        );
+        const IconSave = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        );
+        const IconSearch = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        );
+        const IconDownload = ({ size=24, className="" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        );
+
+        // --- 메인 앱 컴포넌트 ---
+        function App() {
+          const [isAdmin, setIsAdmin] = useState(false);
+          // 네비게이션 상태: 'home', 'newIdea', 'canvas', 'investment'
+          const [activeTab, setActiveTab] = useState('home');
+          
+          // AI 캔버스 생성 로딩 상태
+          const [isGenerating, setIsGenerating] = useState(false);
+
+          // 린 캔버스 9-Block 데이터 상태 (사용자 수정 가능)
+          const [canvasData, setCanvasData] = useState({
+            problem: '', solution: '', metrics: '', uvp: '', advantage: '', channels: '', segments: '', cost: '', revenue: ''
+          });
+
+          // 모의 데이터
+          const myProjects = [
+            { id: 1, title: "이차전지 실리콘 음극재 제조 기술", status: "평가 완료", score: 85, scoreText: "Excellent", valuation: "30억 ~ 45억 원", date: "2026.02.20" },
+            { id: 2, title: "AI 기반 맞춤형 반려동물 헬스케어 솔루션", status: "분석 중", score: null, scoreText: "진행 중", valuation: "분석 중", date: "2026.02.24" }
+          ];
+
+          const similarCompanies = [
+            { name: "펫닥 (Petdoc)", stage: "Series B", funding: "150억 원", similarity: "92%", desc: "반려동물 원격 의료 상담 및 건강 관리 플랫폼" },
+            { name: "핏펫 (Fitpet)", stage: "Series C", funding: "300억 원", similarity: "85%", desc: "반려동물 소변검사 키트 및 맞춤형 헬스케어 커머스" }
+          ];
+
+          // 1. AI 비즈니스 모델 생성 핸들러 (모의 동작)
+          const handleGenerateAI = (e) => {
+            e.preventDefault();
+            setIsGenerating(true);
+            
+            // 2초 후 캔버스 데이터가 채워지고 화면이 전환되는 시뮬레이션
+            setTimeout(() => {
+                setCanvasData({
+                    problem: "1. 반려동물 병원비의 불투명성 및 고비용\n2. 질병 초기 발견의 어려움\n3. 파편화된 건강 기록",
+                    solution: "1. AI 기반 증상 체크 및 예상 병원비 산출\n2. 집에서 하는 간편 진단 키트 연동\n3. 생애주기 맞춤형 건강 수첩 제공",
+                    metrics: "1. 월간 활성 사용자(MAU)\n2. AI 진단 완료 건수\n3. 제휴 동물병원 수",
+                    uvp: "반려동물의 증상을 집에서 AI로 1분 만에 분석하고, 가장 적합하고 투명한 가격의 동물병원을 매칭해주는 스마트 헬스케어 플랫폼",
+                    advantage: "1. 대학 부속 동물병원과 제휴된 방대한 임상 데이터 확보\n2. 자체 개발한 진단 알고리즘 특허 출원",
+                    channels: "1. 반려동물 커뮤니티 및 SNS 앱 내 광고\n2. 펫페어 오프라인 부스\n3. 제휴 동물병원 내 홍보물",
+                    segments: "1. 2030 1인 가구 펫팸족\n2. 만성 질환을 앓고 있는 노령견/묘 보호자\n3. 병원비 지출에 부담을 느끼는 반려인",
+                    cost: "1. AI 서버 및 클라우드 유지비\n2. 플랫폼 개발/유지보수 인건비\n3. 마케팅 및 고객 획득 비용(CAC)",
+                    revenue: "1. 동물병원 예약 중개 수수료\n2. 프리미엄 건강 관리 리포트 구독료\n3. 맞춤형 영양제 및 사료 커머스 판매 마진"
+                });
+                setIsGenerating(false);
+                setActiveTab('canvas');
+            }, 2000);
+          };
+
+          // 캔버스 텍스트 변경 핸들러
+          const handleCanvasChange = (field, value) => {
+              setCanvasData(prev => ({ ...prev, [field]: value }));
+          };
+
+          // 화면 렌더링: 홈 대시보드
+          const renderHome = () => (
+            <div className="space-y-12 animate-fade-in">
+              <section className="relative overflow-hidden bg-gradient-to-br from-blue-900 to-indigo-800 rounded-3xl shadow-xl">
+                <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-white opacity-5 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-72 h-72 bg-blue-500 opacity-10 rounded-full blur-2xl"></div>
+                <div className="relative px-8 py-16 md:px-16 md:py-20 text-center flex flex-col items-center">
+                  <span className="inline-block py-1 px-3 rounded-full bg-blue-800/50 text-blue-200 text-sm font-medium mb-6 border border-blue-700/50">충북대학교기술지주 공식 창업 평가 플랫폼</span>
+                  <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-6 leading-tight tracking-tight">당신의 혁신적인 아이디어, <br className="hidden md:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-200">AI가 가치를 증명합니다.</span></h1>
+                  <p className="text-lg text-blue-100 mb-10 max-w-2xl mx-auto font-light leading-relaxed">단 5분의 입력으로 시장성, 기술성, 사업성을 객관적으로 진단하고, 데이터 기반의 예상 기업가치(Valuation)를 지금 바로 확인하세요.</p>
+                  <button onClick={() => setActiveTab('newIdea')} className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-blue-900 bg-white rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95">
+                    <IconRocket className="mr-2 text-blue-600 group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform" size={24} />
+                    <span className="text-lg">AI 사업성 진단 시작하기</span>
+                  </button>
+                </div>
+              </section>
+
+              <section>
+                <div className="flex justify-between items-end mb-6">
+                  <div><h2 className="text-2xl font-bold text-slate-900">나의 진단 현황</h2></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div onClick={() => setActiveTab('newIdea')} className="bg-transparent border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-500 hover:bg-slate-100/50 hover:border-blue-400 hover:text-blue-600 transition-colors cursor-pointer min-h-[280px]">
+                    <IconPlusCircle size={48} strokeWidth={1.5} className="mb-4" />
+                    <p className="font-semibold text-lg">새로운 아이디어 등록</p>
+                  </div>
+                  {myProjects.map((project) => (
+                    <div key={project.id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[280px]">
+                      {project.status === "평가 완료" && <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>}
+                      {project.status === "분석 중" && <div className="absolute top-0 left-0 w-full h-1 bg-blue-400"></div>}
+                      <div>
+                        <div className="flex justify-between items-start mb-4">
+                          <span className={`px-2.5 py-1 text-xs font-semibold rounded-md flex items-center gap-1.5 ${project.status === '평가 완료' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                            {project.status === '평가 완료' ? <IconCheckCircle2 size={12}/> : <IconClock size={12}/>} {project.status}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900 mb-6 leading-snug line-clamp-2">{project.title}</h3>
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                          <div className="bg-slate-50 p-3 rounded-lg"><p className="text-xs text-slate-500 mb-1">AI 종합 스코어</p><p className="font-bold text-slate-900 text-xl">{project.score || '진행중'}</p></div>
+                          <div className="bg-slate-50 p-3 rounded-lg"><p className="text-xs text-slate-500 mb-1">예상 밸류에이션</p><p className="font-bold text-sm text-blue-700">{project.valuation}</p></div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-auto">
+                        <button className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-slate-900 text-white">리포트 보기</button>
+                        <button onClick={() => setActiveTab('canvas')} className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-blue-50 text-blue-700">캔버스로 연동</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          );
+
+          // 화면 렌더링: 탭 1 (새 아이디어 진단)
+          const renderNewIdea = () => (
+              <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+                  <div className="text-center mb-10">
+                      <h2 className="text-3xl font-bold text-slate-900 mb-4">새 아이디어 진단 및 모델링</h2>
+                      <p className="text-slate-500">기업/제품에 대한 간단한 소개를 작성하거나 기존 리포트를 업로드하시면, <br/>AI가 비즈니스 모델(린 캔버스)을 자동으로 추출하고 평가합니다.</p>
+                  </div>
+
+                  <form onSubmit={handleGenerateAI} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-8">
+                      {/* 수동 입력 파트 */}
+                      <div className="space-y-4">
+                          <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2"><IconFileText className="text-blue-600"/> 간단한 기업 및 제품 소개</h3>
+                          <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                  <label className="block text-sm font-medium text-slate-700 mb-1">프로젝트(기업) 명</label>
+                                  <input type="text" className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="예: 펫닥 AI" required />
+                              </div>
+                              <div>
+                                  <label className="block text-sm font-medium text-slate-700 mb-1">산업 분야</label>
+                                  <select className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                      <option>IT/플랫폼</option>
+                                      <option>바이오/의료</option>
+                                      <option>에너지/환경</option>
+                                      <option>제조/하드웨어</option>
+                                  </select>
+                              </div>
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-slate-700 mb-1">핵심 아이디어 및 해결하려는 문제 설명</label>
+                              <textarea className="w-full h-32 px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none" placeholder="어떤 고객의 어떤 문제를 해결하고자 합니까? 어떻게 수익을 창출할 계획인지 자유롭게 적어주세요." required></textarea>
+                          </div>
+                      </div>
+
+                      <div className="relative flex items-center py-2">
+                          <div className="flex-grow border-t border-slate-200"></div>
+                          <span className="flex-shrink-0 mx-4 text-slate-400 font-medium text-sm">또는 (OR)</span>
+                          <div className="flex-grow border-t border-slate-200"></div>
+                      </div>
+
+                      {/* 파일 업로드 파트 */}
+                      <div className="space-y-4">
+                          <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2"><IconUploadCloud className="text-blue-600"/> 기존 문서 업로드로 자동 분석</h3>
+                          <div className="border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-2xl p-10 flex flex-col items-center justify-center text-center hover:bg-blue-50 transition-colors cursor-pointer">
+                              <div className="bg-white p-3 rounded-full shadow-sm text-blue-600 mb-4">
+                                  <IconUploadCloud size={32} />
+                              </div>
+                              <p className="font-bold text-slate-700 mb-1">PDF, Word, PPT 파일 업로드</p>
+                              <p className="text-sm text-slate-500 mb-4">기업 설명서, IR 자료, 기존 리포트 등을 올려주시면 AI가 내용을 자동 파싱합니다.</p>
+                              <button type="button" className="px-5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50">컴퓨터에서 파일 찾기</button>
+                          </div>
+                      </div>
+
+                      {/* 제출 버튼 */}
+                      <div className="pt-4">
+                          <button type="submit" disabled={isGenerating} className={`w-full py-4 rounded-xl font-bold text-white text-lg flex items-center justify-center gap-2 transition-all ${isGenerating ? 'bg-indigo-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'}`}>
+                              {isGenerating ? (
+                                  <><IconClock className="animate-spin" /> AI가 분석 및 생성 중입니다...</>
+                              ) : (
+                                  <><IconSparkles /> AI 비즈니스 모델(린 캔버스) 자동 생성하기</>
+                              )}
+                          </button>
+                      </div>
+                  </form>
+              </div>
+          );
+
+          // 화면 렌더링: 탭 2 (스타트업 기획 캔버스)
+          const renderCanvas = () => (
+              <div className="space-y-8 animate-fade-in">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                      <div>
+                          <h2 className="text-2xl font-bold text-slate-900">스타트업 기획 캔버스 (Lean Canvas)</h2>
+                          <p className="text-slate-500">AI가 분석한 결과를 바탕으로 생성된 9-Block 모델입니다. 내용을 클릭하여 직접 수정할 수 있습니다.</p>
+                      </div>
+                      <div className="flex gap-2">
+                          <button className="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                              <IconSave size={16}/> 저장하기
+                          </button>
+                          <button className="px-4 py-2 bg-slate-900 rounded-lg text-sm font-semibold text-white hover:bg-slate-800 flex items-center gap-2">
+                              <IconDownload size={16}/> PDF 리포트 다운로드
+                          </button>
+                      </div>
+                  </div>
+
+                  {/* 린 캔버스 9-Block UI (CSS Grid 활용) */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                      <div className="grid grid-cols-1 lg:grid-cols-5 gap-0 border-l border-t border-slate-300">
+                          
+                          {/* Col 1: Problem */}
+                          <div className="lg:col-span-1 border-r border-b border-slate-300 p-4 bg-red-50/30">
+                              <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-1">1. 문제 (Problem)</h3>
+                              <textarea value={canvasData.problem} onChange={(e)=>handleCanvasChange('problem', e.target.value)} className="w-full h-48 lg:h-80 bg-transparent text-sm text-slate-600 outline-none resize-none leading-relaxed" placeholder="내용을 입력하세요..."></textarea>
+                          </div>
+
+                          {/* Col 2: Solution & Metrics */}
+                          <div className="lg:col-span-1 border-r border-slate-300 flex flex-col">
+                              <div className="border-b border-slate-300 p-4 flex-1 bg-green-50/30">
+                                  <h3 className="text-sm font-bold text-slate-800 mb-2">4. 해결책 (Solution)</h3>
+                                  <textarea value={canvasData.solution} onChange={(e)=>handleCanvasChange('solution', e.target.value)} className="w-full h-32 bg-transparent text-sm text-slate-600 outline-none resize-none leading-relaxed"></textarea>
+                              </div>
+                              <div className="border-b border-slate-300 p-4 flex-1 bg-blue-50/30">
+                                  <h3 className="text-sm font-bold text-slate-800 mb-2">8. 핵심 지표 (Key Metrics)</h3>
+                                  <textarea value={canvasData.metrics} onChange={(e)=>handleCanvasChange('metrics', e.target.value)} className="w-full h-32 bg-transparent text-sm text-slate-600 outline-none resize-none leading-relaxed"></textarea>
+                              </div>
+                          </div>
+
+                          {/* Col 3: Unique Value Proposition */}
+                          <div className="lg:col-span-1 border-r border-b border-slate-300 p-4 bg-amber-50/30">
+                              <h3 className="text-sm font-bold text-slate-800 mb-2">3. 고유 가치 제안 (UVP)</h3>
+                              <textarea value={canvasData.uvp} onChange={(e)=>handleCanvasChange('uvp', e.target.value)} className="w-full h-48 lg:h-80 bg-transparent text-sm text-slate-600 outline-none resize-none leading-relaxed"></textarea>
+                          </div>
+
+                          {/* Col 4: Unfair Advantage & Channels */}
+                          <div className="lg:col-span-1 border-r border-slate-300 flex flex-col">
+                              <div className="border-b border-slate-300 p-4 flex-1 bg-purple-50/30">
+                                  <h3 className="text-sm font-bold text-slate-800 mb-2">9. 경쟁 우위 (Advantage)</h3>
+                                  <textarea value={canvasData.advantage} onChange={(e)=>handleCanvasChange('advantage', e.target.value)} className="w-full h-32 bg-transparent text-sm text-slate-600 outline-none resize-none leading-relaxed"></textarea>
+                              </div>
+                              <div className="border-b border-slate-300 p-4 flex-1 bg-cyan-50/30">
+                                  <h3 className="text-sm font-bold text-slate-800 mb-2">5. 채널 (Channels)</h3>
+                                  <textarea value={canvasData.channels} onChange={(e)=>handleCanvasChange('channels', e.target.value)} className="w-full h-32 bg-transparent text-sm text-slate-600 outline-none resize-none leading-relaxed"></textarea>
+                              </div>
+                          </div>
+
+                          {/* Col 5: Customer Segments */}
+                          <div className="lg:col-span-1 border-r border-b border-slate-300 p-4 bg-rose-50/30">
+                              <h3 className="text-sm font-bold text-slate-800 mb-2">2. 고객군 (Segments)</h3>
+                              <textarea value={canvasData.segments} onChange={(e)=>handleCanvasChange('segments', e.target.value)} className="w-full h-48 lg:h-80 bg-transparent text-sm text-slate-600 outline-none resize-none leading-relaxed"></textarea>
+                          </div>
+
+                          {/* Bottom Row: Cost & Revenue (50% width each) */}
+                          <div className="lg:col-span-5 flex flex-col lg:flex-row">
+                              <div className="flex-1 border-r border-b lg:border-l-0 border-slate-300 p-4 bg-slate-50/50">
+                                  <h3 className="text-sm font-bold text-slate-800 mb-2">7. 비용 구조 (Cost Structure)</h3>
+                                  <textarea value={canvasData.cost} onChange={(e)=>handleCanvasChange('cost', e.target.value)} className="w-full h-24 bg-transparent text-sm text-slate-600 outline-none resize-none leading-relaxed"></textarea>
+                              </div>
+                              <div className="flex-1 border-r border-b border-slate-300 p-4 bg-slate-50/50">
+                                  <h3 className="text-sm font-bold text-slate-800 mb-2">6. 수익원 (Revenue Streams)</h3>
+                                  <textarea value={canvasData.revenue} onChange={(e)=>handleCanvasChange('revenue', e.target.value)} className="w-full h-24 bg-transparent text-sm text-slate-600 outline-none resize-none leading-relaxed"></textarea>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
+                  {/* 외부 투자 기업 유사 사례 */}
+                  <div className="mt-12">
+                      <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2"><IconSearch className="text-blue-600"/> 유사 비즈니스 모델 (외부 투자 유치 사례) 탐색</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {similarCompanies.map((company, idx) => (
+                              <div key={idx} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-start justify-between hover:border-blue-300 transition-colors">
+                                  <div>
+                                      <h4 className="font-bold text-slate-800 text-lg mb-1">{company.name}</h4>
+                                      <p className="text-sm text-slate-500 mb-3">{company.desc}</p>
+                                      <div className="flex gap-2">
+                                          <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">{company.stage}</span>
+                                          <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-md font-medium">투자금: {company.funding}</span>
+                                      </div>
+                                  </div>
+                                  <div className="text-right">
+                                      <div className="text-2xl font-black text-indigo-600">{company.similarity}</div>
+                                      <div className="text-xs text-slate-400 font-medium">BM 매칭률</div>
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                  </div>
+              </div>
+          );
+
+          // 화면 렌더링: 탭 3 (멘토링 / 투자 연계)
+          const renderInvestment = () => (
+              <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+                  <div className="text-center mb-10">
+                      <h2 className="text-3xl font-bold text-slate-900 mb-4">멘토링 및 투자 연계 신청</h2>
+                      <p className="text-slate-500">도출된 비즈니스 모델을 바탕으로 충북대학교기술지주의 전문가 멘토링과 <br/>맞춤형 투자사(VC) 매칭을 지원받으세요.</p>
+                  </div>
+
+                  <form className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+                      <h3 className="text-xl font-bold text-slate-800 border-b pb-4 mb-6">투자 수요 정보</h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                              <label className="block text-sm font-medium text-slate-700 mb-2">현재 투자 단계</label>
+                              <select className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                  <option>극초기 (창업 준비 중)</option>
+                                  <option>Seed (시드 투자)</option>
+                                  <option>Pre-Series A</option>
+                                  <option>Series A 이상</option>
+                              </select>
+                          </div>
+                          <div>
+                              <label className="block text-sm font-medium text-slate-700 mb-2">희망 투자 유치 금액</label>
+                              <select className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                  <option>1억 원 미만</option>
+                                  <option>1억 ~ 5억 원</option>
+                                  <option>5억 ~ 10억 원</option>
+                                  <option>10억 원 이상</option>
+                              </select>
+                          </div>
+                      </div>
+
+                      <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">주요 투자금 사용 목적</label>
+                          <textarea className="w-full h-24 px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="예: 시제품 개발, 마케팅 비용, 인건비 등"></textarea>
+                      </div>
+
+                      <h3 className="text-xl font-bold text-slate-800 border-b pb-4 mt-8 mb-6">필요한 멘토링 분야 (다중 선택 가능)</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {['기술 고도화/특허', '비즈니스 모델(BM)', '재무/세무/법률', '마케팅/판로개척', '투자 IR 자료 피칭', '팀 빌딩/조직관리'].map((item) => (
+                              <label key={item} className="flex items-center gap-2 p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                                  <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" />
+                                  <span className="text-sm font-medium text-slate-700">{item}</span>
+                              </label>
+                          ))}
+                      </div>
+
+                      <div className="pt-8">
+                          <button type="button" onClick={() => alert('신청이 완료되었습니다. 담당자가 확인 후 연락드리겠습니다.')} className="w-full py-4 bg-slate-900 hover:bg-slate-800 rounded-xl font-bold text-white text-lg transition-colors">
+                              매칭 및 지원 신청하기
+                          </button>
+                      </div>
+                  </form>
+              </div>
+          );
+
+          return (
+            <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-20">
+              <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex justify-between h-16">
+                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('home')}>
+                      <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center text-white font-bold text-xl">C</div>
+                      <span className="font-bold text-lg text-slate-900 tracking-tight">CBNU <span className="text-blue-700">AI-Venture Desk</span></span>
+                    </div>
+
+                    <div className="hidden md:flex items-center space-x-8">
+                      <button onClick={() => setActiveTab('newIdea')} className={`font-semibold py-5 transition-colors ${activeTab === 'newIdea' ? 'text-blue-700 border-b-2 border-blue-700' : 'text-slate-500 hover:text-slate-900'}`}>새 아이디어 진단</button>
+                      <button onClick={() => setActiveTab('canvas')} className={`font-semibold py-5 transition-colors ${activeTab === 'canvas' ? 'text-blue-700 border-b-2 border-blue-700' : 'text-slate-500 hover:text-slate-900'}`}>스타트업 기획 캔버스</button>
+                      <button onClick={() => setActiveTab('investment')} className={`font-semibold py-5 transition-colors ${activeTab === 'investment' ? 'text-blue-700 border-b-2 border-blue-700' : 'text-slate-500 hover:text-slate-900'}`}>멘토링 / 투자 연계</button>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                      <button className="text-slate-400 hover:text-slate-600"><IconBell size={20} /></button>
+                      <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer hover:bg-slate-300 transition"><IconUser size={18} /></div>
+                    </div>
+                  </div>
+                </div>
+              </nav>
+
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                  {activeTab === 'home' && renderHome()}
+                  {activeTab === 'newIdea' && renderNewIdea()}
+                  {activeTab === 'canvas' && renderCanvas()}
+                  {activeTab === 'investment' && renderInvestment()}
+              </main>
+
+              {/* 간단한 CSS 애니메이션 추가 */}
+              <style>{`
+                  .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+                  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+              `}</style>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

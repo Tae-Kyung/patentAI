@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(npx shadcn@latest add accordion --yes)",
+      "Bash(npx tsc:*)",
+      "Bash(node -e:*)",
+      "Bash(node -e \"JSON.parse\\(require\\(''fs''\\).readFileSync\\(''src/i18n/messages/en.json'',''utf8''\\)\\); console.log\\(''en.json OK''\\)\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(tasklist:*)",
+      "Bash(taskkill:*)",
+      "Bash(tail:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:casa-sable.vercel.app)",
+      "Bash(grep:*)",
+      "Bash(cd:*)",
+      "Bash(npx next:*)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx supabase:*)",
+      "Read(//c/Users/misoh/AppData/Roaming/**)",
+      "Read(//c/Users/misoh/.config/**)",
+      "Read(//c/Users/misoh/AppData/**)",
+      "Read(//c/Users/misoh/**)",
+      "Bash(node:*)",
+      "Bash(rm:*)",
+      "Bash(curl -s \"http://localhost:3000/api/projects/50d9c26a-f594-455b-bd8d-e66b0a037744\" 2>/dev/null | python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); ev=d.get\\('data',{}\\).get\\('evaluation',{}\\); print\\('tech_score:', ev.get\\('tech_score'\\)\\); print\\('tech_feedback:', repr\\(ev.get\\('tech_feedback'\\)\\)[:200] if ev.get\\('tech_feedback'\\) else 'None'\\); print\\('investor_score:', ev.get\\('investor_score'\\)\\); print\\('market_score:', ev.get\\('market_score'\\)\\); print\\('is_confirmed:', ev.get\\('is_confirmed'\\)\\); print\\('total_score:', ev.get\\('total_score'\\)\\)\" 2>/dev/null || echo \"Could not fetch or parse\")",
+      "Bash(curl -s \"http://localhost:3000/api/projects/50d9c26a-f594-455b-bd8d-e66b0a037744\" 2>/dev/null | python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('data',{}\\).get\\('evaluation'\\), indent=2\\)\\)\" 2>/dev/null)"
+    ]
+  }
+}

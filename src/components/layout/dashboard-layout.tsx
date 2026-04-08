@@ -43,13 +43,10 @@ const USER_NAV: NavItem[] = [
   { href: '/settings', label: '설정', icon: <Settings className="h-5 w-5" /> },
 ]
 
-const ADMIN_NAV: NavItem[] = [
-  { href: '/admin', label: '관리자 대시보드', icon: <Shield className="h-5 w-5" />, exactMatch: true },
+const ADMIN_ONLY_NAV: NavItem[] = [
+  { href: '/admin', label: '대시보드', icon: <Shield className="h-5 w-5" />, exactMatch: true },
   { href: '/admin/prompts', label: '프롬프트 관리', icon: <MessageSquare className="h-5 w-5" /> },
   { href: '/admin/credits', label: '크레딧 관리', icon: <Coins className="h-5 w-5" /> },
-  { href: '/dashboard', label: '특허 프로젝트', icon: <FileText className="h-5 w-5" />, exactMatch: true },
-  { href: '/credits', label: '내 크레딧', icon: <Coins className="h-5 w-5" /> },
-  { href: '/settings', label: '설정', icon: <Settings className="h-5 w-5" /> },
 ]
 
 export function DashboardLayout({ children, userEmail, isAdmin = false }: DashboardLayoutProps) {
@@ -57,8 +54,6 @@ export function DashboardLayout({ children, userEmail, isAdmin = false }: Dashbo
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  const navItems = isAdmin ? ADMIN_NAV : USER_NAV
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -73,24 +68,38 @@ export function DashboardLayout({ children, userEmail, isAdmin = false }: Dashbo
     return pathWithoutLocale === href || pathWithoutLocale.startsWith(`${href}/`)
   }
 
+  const navLink = (item: NavItem) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      onClick={() => setMobileMenuOpen(false)}
+      className={cn(
+        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+        isActive(item.href, item.exactMatch)
+          ? 'bg-primary text-primary-foreground'
+          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+      )}
+    >
+      {item.icon}
+      {item.label}
+    </Link>
+  )
+
   const navContent = (
     <nav className="flex flex-col gap-1">
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          onClick={() => setMobileMenuOpen(false)}
-          className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-            isActive(item.href, item.exactMatch)
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-          )}
-        >
-          {item.icon}
-          {item.label}
-        </Link>
-      ))}
+      {isAdmin && (
+        <>
+          <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+            관리자
+          </p>
+          {ADMIN_ONLY_NAV.map(navLink)}
+          <div className="my-3 border-t border-border" />
+          <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+            내 계정
+          </p>
+        </>
+      )}
+      {USER_NAV.map(navLink)}
     </nav>
   )
 

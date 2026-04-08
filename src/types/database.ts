@@ -1337,6 +1337,54 @@ export interface Database {
         }
         Relationships: []
       }
+      patentai_prompt_versions: {
+        Row: {
+          id: string
+          prompt_id: string
+          version: number
+          system_prompt: string
+          user_prompt_template: string
+          model: string
+          temperature: number | null
+          max_tokens: number | null
+          change_note: string | null
+          changed_by: string | null
+          created_at: string
+          usage_count: number
+          avg_rating: number | null
+        }
+        Insert: {
+          id?: string
+          prompt_id: string
+          version: number
+          system_prompt: string
+          user_prompt_template: string
+          model: string
+          temperature?: number | null
+          max_tokens?: number | null
+          change_note?: string | null
+          changed_by?: string | null
+          created_at?: string
+          usage_count?: number
+          avg_rating?: number | null
+        }
+        Update: {
+          id?: string
+          prompt_id?: string
+          version?: number
+          system_prompt?: string
+          user_prompt_template?: string
+          model?: string
+          temperature?: number | null
+          max_tokens?: number | null
+          change_note?: string | null
+          changed_by?: string | null
+          created_at?: string
+          usage_count?: number
+          avg_rating?: number | null
+        }
+        Relationships: []
+      }
       patentai_patent_projects: {
         Row: {
           id: string
@@ -1734,8 +1782,8 @@ export type Evaluation = Database['public']['Tables']['bi_evaluations']['Row']
 export type Document = Database['public']['Tables']['bi_documents']['Row']
 export type Feedback = Database['public']['Tables']['bi_feedbacks']['Row']
 export type Approval = Database['public']['Tables']['bi_approvals']['Row']
-export type Prompt = Database['public']['Tables']['bi_prompts']['Row']
-export type PromptVersion = Database['public']['Tables']['bi_prompt_versions']['Row']
+export type Prompt = Database['public']['Tables']['patentai_prompts']['Row']
+export type PromptVersion = Database['public']['Tables']['patentai_prompt_versions']['Row']
 export type PromptVariable = Database['public']['Tables']['bi_prompt_variables']['Row']
 export type BusinessReview = Database['public']['Tables']['bi_business_reviews']['Row']
 export type CreditLog = Database['public']['Tables']['bi_credit_logs']['Row']

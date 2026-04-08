@@ -17,6 +17,16 @@ interface AdminStats {
   }
 }
 
+const STATUS_META: { key: string; step: string; label: string; color: string }[] = [
+  { key: 'draft',      step: '시작',   label: '초안',          color: 'bg-gray-400' },
+  { key: 'step1_done', step: 'STEP 1', label: '입력·분석 완료', color: 'bg-blue-400' },
+  { key: 'step2_done', step: 'STEP 2', label: '기술 구조화 완료', color: 'bg-indigo-400' },
+  { key: 'step3_done', step: 'STEP 3', label: '청구범위 완료',  color: 'bg-violet-400' },
+  { key: 'step4_done', step: 'STEP 4', label: '명세서 완료',   color: 'bg-purple-400' },
+  { key: 'step5_done', step: 'STEP 5', label: '도면 완료',     color: 'bg-fuchsia-400' },
+  { key: 'completed',  step: '완료',   label: '출력 완료',     color: 'bg-green-500' },
+]
+
 export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -100,13 +110,32 @@ export default function AdminDashboardPage() {
             <CardTitle>프로젝트 단계별 현황</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-3">
-              {Object.entries(data.projectsByStatus).map(([status, count]) => (
-                <div key={status} className="rounded-lg border px-3 py-2 text-center">
-                  <p className="text-lg font-bold">{count}</p>
-                  <p className="text-xs text-muted-foreground">{status}</p>
-                </div>
-              ))}
+            <div className="space-y-3">
+              {STATUS_META.map(({ key, step, label, color }) => {
+                const count = data.projectsByStatus[key] ?? 0
+                const pct = data.totalProjects > 0 ? Math.round((count / data.totalProjects) * 100) : 0
+                return (
+                  <div key={key} className="flex items-center gap-3">
+                    <div className="w-16 shrink-0 text-right">
+                      <span className="text-xs font-medium text-muted-foreground">{step}</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="mb-0.5 flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{label}</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">
+                          {count}건 <span className="text-xs font-normal text-muted-foreground">({pct}%)</span>
+                        </span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+                        <div
+                          className={`h-full rounded-full transition-all ${color}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </CardContent>
         </Card>

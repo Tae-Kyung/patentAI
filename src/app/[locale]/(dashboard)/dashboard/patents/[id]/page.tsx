@@ -126,9 +126,18 @@ export default function PatentWorkPage({ params }: PageProps) {
     }
   }
 
+  function parseTitle(title: string): string {
+    try {
+      const parsed = JSON.parse(title) as { ko?: string; en?: string }
+      return parsed.ko ?? title
+    } catch {
+      return title
+    }
+  }
+
   function startEditTitle() {
     if (!project) return
-    setTitleInput(project.title)
+    setTitleInput(parseTitle(project.title))
     setEditingTitle(true)
     setTimeout(() => titleInputRef.current?.select(), 0)
   }
@@ -209,7 +218,7 @@ export default function PatentWorkPage({ params }: PageProps) {
             </div>
           ) : (
             <div className="flex items-center gap-2 group/title">
-              <h1 className="truncate text-xl font-bold text-gray-900 dark:text-white">{project.title}</h1>
+              <h1 className="truncate text-xl font-bold text-gray-900 dark:text-white">{parseTitle(project.title)}</h1>
               <Button
                 size="icon"
                 variant="ghost"

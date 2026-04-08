@@ -55,6 +55,15 @@ const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'dest
   completed: 'default',
 }
 
+function parseTitle(title: string): string {
+  try {
+    const parsed = JSON.parse(title) as { ko?: string; en?: string }
+    return parsed.ko ?? title
+  } catch {
+    return title
+  }
+}
+
 function formatDate(dateStr: string) {
   const d = new Date(dateStr)
   const y = d.getFullYear()
@@ -191,7 +200,7 @@ export default function DashboardPage() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="line-clamp-2 text-base font-semibold text-gray-900 dark:text-white">
-                        {project.title}
+                        {parseTitle(project.title)}
                       </CardTitle>
                       <Badge
                         variant={STATUS_VARIANT[project.status] ?? 'secondary'}
@@ -231,7 +240,7 @@ export default function DashboardPage() {
                       <AlertDialogTitle>프로젝트를 삭제하시겠습니까?</AlertDialogTitle>
                       <AlertDialogDescription>
                         <span className="font-medium text-gray-900 dark:text-white">
-                          &ldquo;{project.title}&rdquo;
+                          &ldquo;{parseTitle(project.title)}&rdquo;
                         </span>{' '}
                         프로젝트와 관련된 모든 데이터(청구항, 명세서, 도면 등)가 영구적으로
                         삭제됩니다. 이 작업은 되돌릴 수 없습니다.

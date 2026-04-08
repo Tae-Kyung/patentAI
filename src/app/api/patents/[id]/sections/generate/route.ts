@@ -152,9 +152,31 @@ export async function POST(
 
     if (error) {
       yield { type: 'error', data: '섹션 저장 실패' }
-    } else {
-      yield { type: 'result', data: JSON.stringify({ section_type: sectionType, content }) }
+      yield { type: 'done', data: '' }
+      return
     }
+
+    // title 섹션은 project.title도 한국어 제목으로 업데이트
+    if (sectionType === 'title') {
+      try {
+        const titleJson = JSON.parse(content) as { ko?: string; en?: string }
+        const koTitle = titleJson.ko?.trim()
+        if (koTitle) {
+          await supabase
+            .from('patentai_patent_projects')
+            .update({ title: koTitle })
+            .eq('id', id)
+        }
+      } catch {
+        // JSON 파싱 실패 시 content를 그대로 title로 저장
+        await supabase
+          .from('patentai_patent_projects')
+          .update({ title: content.trim() })
+          .eq('id', id)
+      }
+    }
+
+    yield { type: 'result', data: JSON.stringify({ section_type: sectionType, content }) }
 
     yield { type: 'done', data: '' }
   }

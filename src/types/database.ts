@@ -1299,6 +1299,7 @@ export interface Database {
           temperature: number
           max_tokens: number
           credit_cost: number
+          version: number
           is_active: boolean
           created_at: string
           updated_at: string
@@ -1315,6 +1316,7 @@ export interface Database {
           temperature?: number
           max_tokens?: number
           credit_cost?: number
+          version?: number
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -1331,6 +1333,7 @@ export interface Database {
           temperature?: number
           max_tokens?: number
           credit_cost?: number
+          version?: number
           is_active?: boolean
           created_at?: string
           updated_at?: string

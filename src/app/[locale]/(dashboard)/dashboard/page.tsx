@@ -37,23 +37,21 @@ interface PatentProject {
 
 const STATUS_LABEL: Record<string, string> = {
   draft: '초안',
-  step1: '입력/분석',
-  step2: '기술 구조화',
-  step3: '청구범위',
-  step4: '명세서 본문',
-  step5: '도면 생성',
-  step6: '최종 출력',
-  completed: '완료',
+  step1_done: '분석 완료',
+  step2_done: '구조화 완료',
+  step3_done: '청구범위 완료',
+  step4_done: '명세서 완료',
+  step5_done: '도면 완료',
+  completed: '최종 출력 완료',
 }
 
 const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
   draft: 'secondary',
-  step1: 'outline',
-  step2: 'outline',
-  step3: 'outline',
-  step4: 'outline',
-  step5: 'outline',
-  step6: 'default',
+  step1_done: 'outline',
+  step2_done: 'outline',
+  step3_done: 'outline',
+  step4_done: 'outline',
+  step5_done: 'outline',
   completed: 'default',
 }
 

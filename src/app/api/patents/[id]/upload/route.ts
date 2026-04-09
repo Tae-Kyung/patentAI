@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { requireAuth } from '@/lib/auth/guards'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { successResponse, errorResponse, handleApiError } from '@/lib/utils/api-response'
 import { extractTextFromPdf } from '@/lib/utils/pdf-extract'
 import { extractTextFromDocx } from '@/lib/utils/docx-extract'
@@ -21,6 +22,7 @@ export async function POST(
     const { id } = await params
     const user = await requireAuth()
     const supabase = await createClient()
+    const serviceSupabase = createServiceClient()
 
     // 프로젝트 소유자 확인
     const { data: project } = await supabase
@@ -41,13 +43,13 @@ export async function POST(
       return errorResponse('지원하지 않는 파일 형식입니다. (PDF, DOCX, MD, TXT)', 400)
     }
 
-    // Supabase Storage 업로드
+    // Supabase Storage 업로드 (service role - RLS 우회)
     const ext = file.name.split('.').pop() ?? 'bin'
     const storagePath = `${user.id}/${id}/${Date.now()}.${ext}`
     const arrayBuffer = await file.arrayBuffer()
     const fileBuffer = Buffer.from(arrayBuffer)
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await serviceSupabase.storage
       .from('patent-files')
       .upload(storagePath, fileBuffer, {
         contentType: file.type,
@@ -62,7 +64,7 @@ export async function POST(
       throw uploadError
     }
 
-    const { data: urlData } = supabase.storage.from('patent-files').getPublicUrl(storagePath)
+    const { data: urlData } = serviceSupabase.storage.from('patent-files').getPublicUrl(storagePath)
 
     // 텍스트 추출
     let extractedText = ''

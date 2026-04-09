@@ -6,7 +6,7 @@ import { successResponse, errorResponse, handleApiError } from '@/lib/utils/api-
 
 const createInputSchema = z.object({
   type: z.literal('text'),
-  content: z.string().min(1).max(5000),
+  content: z.string().min(1).max(10000),
 })
 
 // POST: 텍스트 입력 저장

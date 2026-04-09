@@ -13,7 +13,7 @@ interface InputFormProps {
 }
 
 const ALLOWED_EXTENSIONS = ['.pdf', '.docx', '.md', '.txt']
-const MAX_TEXT_LENGTH = 5000
+const MAX_TEXT_LENGTH = 10000
 
 export function InputForm({ projectId, onInputSaved }: InputFormProps) {
   const [activeTab, setActiveTab] = useState<'text' | 'file'>('text')

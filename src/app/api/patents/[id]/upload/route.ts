@@ -7,12 +7,13 @@ import { extractTextFromPdf } from '@/lib/utils/pdf-extract'
 import { extractTextFromDocx } from '@/lib/utils/docx-extract'
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
-const ALLOWED_MIME_TYPES = [
-  'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'text/markdown',
-  'text/plain',
-]
+const EXT_TO_MIME: Record<string, string> = {
+  pdf: 'application/pdf',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  md: 'text/markdown',
+  txt: 'text/plain',
+}
+const ALLOWED_EXTENSIONS = Object.keys(EXT_TO_MIME)
 
 export async function POST(
   request: NextRequest,
@@ -39,12 +40,15 @@ export async function POST(
 
     if (!file) return errorResponse('파일이 없습니다.', 400)
     if (file.size > MAX_FILE_SIZE) return errorResponse('파일 크기는 50MB 이하여야 합니다.', 400)
-    if (!ALLOWED_MIME_TYPES.includes(file.type) && !file.name.endsWith('.md')) {
+
+    // 확장자 기반 MIME 타입 결정 (브라우저가 octet-stream으로 보내는 경우 대비)
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+    const mimeType = EXT_TO_MIME[ext]
+    if (!mimeType) {
       return errorResponse('지원하지 않는 파일 형식입니다. (PDF, DOCX, MD, TXT)', 400)
     }
 
     // Supabase Storage 업로드 (service role - RLS 우회)
-    const ext = file.name.split('.').pop() ?? 'bin'
     const storagePath = `${user.id}/${id}/${Date.now()}.${ext}`
     const arrayBuffer = await file.arrayBuffer()
     const fileBuffer = Buffer.from(arrayBuffer)
@@ -52,7 +56,7 @@ export async function POST(
     const { error: uploadError } = await serviceSupabase.storage
       .from('patent-files')
       .upload(storagePath, fileBuffer, {
-        contentType: file.type,
+        contentType: mimeType,
         cacheControl: '3600',
         upsert: false,
       })
@@ -69,10 +73,10 @@ export async function POST(
     // 텍스트 추출
     let extractedText = ''
     try {
-      if (file.type === 'application/pdf') {
-        const result = await extractTextFromPdf(new File([fileBuffer], file.name, { type: file.type }))
+      if (mimeType === 'application/pdf') {
+        const result = await extractTextFromPdf(new File([fileBuffer], file.name, { type: mimeType }))
         extractedText = result.text
-      } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
         extractedText = await extractTextFromDocx(fileBuffer)
       } else {
         // MD / TXT
@@ -102,7 +106,7 @@ export async function POST(
     return successResponse({
       input,
       extracted: extractedText.length > 0,
-      needsOcr: extractedText.length === 0 && file.type === 'application/pdf',
+      needsOcr: extractedText.length === 0 && mimeType === 'application/pdf',
     }, 201)
   } catch (error) {
     return handleApiError(error)

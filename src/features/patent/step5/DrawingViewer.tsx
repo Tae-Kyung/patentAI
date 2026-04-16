@@ -310,14 +310,16 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="font-semibold text-gray-900 dark:text-white">특허 도면</h3>
-          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            Gemini AI로 도면을 생성하거나 직접 업로드합니다.
-          </p>
-        </div>
-        <div className="flex gap-2">
+      {/* 헤더 — 제목 + 버튼 두 줄 */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">특허 도면</h3>
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+              Gemini AI로 도면을 생성하거나 직접 업로드합니다.
+            </p>
+          </div>
+          {/* 보조 버튼 */}
           <Button
             size="sm"
             variant="outline"
@@ -332,7 +334,13 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
             )}
             {descSynced ? '설명 동기화됨' : '도면 설명 재생성'}
           </Button>
-          <div className="flex items-center gap-1">
+        </div>
+
+        {/* 주요 액션 버튼 행 */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* AI 자동 생성 + 도면 수 */}
+          <div className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-800/50">
+            <span className="text-xs text-gray-500">도면 수</span>
             <Input
               type="number"
               min={1}
@@ -340,29 +348,35 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
               value={targetCount}
               onChange={(e) => setTargetCount(Math.min(10, Math.max(1, parseInt(e.target.value) || 3)))}
               disabled={autoGenerating}
-              className="h-8 w-16 text-center text-sm"
-              title="생성할 도면 수"
+              className="h-7 w-12 text-center text-sm border-0 bg-transparent p-0 focus-visible:ring-0"
             />
             <span className="text-xs text-gray-500">개</span>
+            <Button
+              size="sm"
+              variant="default"
+              className="h-7 px-2.5 text-xs"
+              onClick={handleAutoGenerate}
+              disabled={autoGenerating || generating !== null}
+            >
+              {autoGenerating ? (
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              ) : (
+                <Sparkles className="mr-1 h-3 w-3" />
+              )}
+              AI 자동 생성
+            </Button>
           </div>
-          <Button
-            size="sm"
-            variant="default"
-            onClick={handleAutoGenerate}
-            disabled={autoGenerating || generating !== null}
-          >
-            {autoGenerating ? (
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-            )}
-            AI 자동 생성
-          </Button>
+
           <Button
             size="sm"
             variant="outline"
             onClick={() => {
-              setExternalForm((f) => ({ ...f, drawing_number: Math.max(1, ...(drawings.map(d => d.drawing_number))) + 1, file: null, caption: '' }))
+              setExternalForm((f) => ({
+                ...f,
+                drawing_number: drawings.length > 0 ? Math.max(...drawings.map(d => d.drawing_number)) + 1 : 1,
+                file: null,
+                caption: '',
+              }))
               setShowExternalForm(true)
             }}
             disabled={autoGenerating}
@@ -370,6 +384,7 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
             <ImagePlus className="mr-1.5 h-3.5 w-3.5" />
             외부 도면 업로드
           </Button>
+
           <Button size="sm" variant="outline" onClick={() => setShowAddForm(true)} disabled={autoGenerating}>
             <Plus className="mr-1.5 h-3.5 w-3.5" />
             도면 추가

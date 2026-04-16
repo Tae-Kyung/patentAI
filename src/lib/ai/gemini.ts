@@ -78,6 +78,94 @@ export async function generateImage(
 }
 
 /**
+ * Gemini Vision — 이미지 분석 (도면 해석용)
+ * @param imageBuffer 이미지 바이너리
+ * @param mimeType 이미지 MIME 타입
+ * @param prompt 분석 지시 프롬프트
+ */
+export async function analyzeImageWithVision(
+  imageBuffer: Buffer,
+  mimeType: string,
+  prompt: string,
+  options: GeminiOptions = {}
+): Promise<string> {
+  const { model = 'gemini-2.5-flash', temperature = 0.3 } = options
+
+  const response = await ai.models.generateContent({
+    model,
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { inlineData: { data: imageBuffer.toString('base64'), mimeType } },
+          { text: prompt },
+        ],
+      },
+    ],
+    config: { temperature },
+  })
+
+  return response.text ?? ''
+}
+
+/**
+ * Gemini Vision + 이미지 생성 — 외부 도면을 특허 도면 스타일로 변환
+ * @param imageBuffer 원본 이미지 버퍼
+ * @param mimeType 이미지 MIME 타입
+ * @param systemPrompt 도면 생성 시스템 프롬프트
+ * @param userPrompt 변환 지시
+ */
+export async function simplifyDrawingToPatentStyle(
+  imageBuffer: Buffer,
+  mimeType: string,
+  systemPrompt: string,
+  userPrompt: string,
+  options: GeminiOptions = {}
+): Promise<GeminiImageResponse> {
+  const { model = 'gemini-2.5-flash-image', temperature = 0.4 } = options
+
+  const fullPrompt = systemPrompt ? `${systemPrompt}\n\n---\n\n${userPrompt}` : userPrompt
+
+  const response = await ai.models.generateContent({
+    model,
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { inlineData: { data: imageBuffer.toString('base64'), mimeType } },
+          { text: fullPrompt },
+        ],
+      },
+    ],
+    config: {
+      temperature,
+      responseModalities: ['TEXT', 'IMAGE'],
+    },
+  })
+
+  let imageData: Buffer | null = null
+  let outMimeType = 'image/png'
+  let textContent: string | null = null
+
+  if (response.candidates?.[0]?.content?.parts) {
+    for (const part of response.candidates[0].content.parts) {
+      if (part.inlineData) {
+        imageData = Buffer.from(part.inlineData.data!, 'base64')
+        outMimeType = part.inlineData.mimeType || 'image/png'
+      } else if (part.text) {
+        textContent = part.text
+      }
+    }
+  }
+
+  if (!imageData) {
+    throw new Error('특허 도면 변환 실패: 이미지를 반환하지 않았습니다.')
+  }
+
+  return { imageData, mimeType: outMimeType, textContent }
+}
+
+/**
  * Gemini API 동기 호출
  */
 export async function callGemini(

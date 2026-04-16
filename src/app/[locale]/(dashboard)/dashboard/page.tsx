@@ -105,6 +105,7 @@ export default function DashboardPage() {
   }
 
   async function handleCreateProject() {
+    if (creating) return
     const title = newTitle.trim() || '새 특허 프로젝트'
     setShowCreateDialog(false)
     setCreating(true)
@@ -280,7 +281,7 @@ export default function DashboardPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateDialog(false)}>취소</Button>
-            <Button onClick={handleCreateProject}>만들기</Button>
+            <Button onClick={handleCreateProject} disabled={creating}>만들기</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

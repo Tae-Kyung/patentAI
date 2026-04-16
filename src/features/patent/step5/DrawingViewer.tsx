@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { Loader2, RefreshCw, Upload, ZoomIn, Trash2, Plus, Sparkles, FileText } from 'lucide-react'
+import { Loader2, RefreshCw, Upload, ZoomIn, Trash2, Plus, Sparkles, FileText, ImagePlus, Wand2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,20 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import type { PatentDrawing, PatentDrawingType } from '@/types/database'
+
+interface ExternalAnalysis {
+  description: string
+  components: { ref_number: string; name: string; description: string }[]
+  drawing_flow: string
+  drawing_desc_line: string
+}
+
+interface ExternalUploadForm {
+  drawing_number: number
+  drawing_type: PatentDrawingType
+  caption: string
+  file: File | null
+}
 
 const DRAWING_TYPE_LABELS: Record<PatentDrawingType, string> = {
   system_architecture: '시스템 구조도',
@@ -50,9 +64,22 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
   const [replacingId, setReplacingId] = useState<string | undefined>(undefined)
   const [autoGenerating, setAutoGenerating] = useState(false)
   const [autoProgress, setAutoProgress] = useState<{ done: number; total: number; caption: string } | null>(null)
+  const [targetCount, setTargetCount] = useState(3)
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set())
   const [syncingDesc, setSyncingDesc] = useState(false)
   const [descSynced, setDescSynced] = useState(false)
+  // 외부 도면 업로드
+  const externalFileRef = useRef<HTMLInputElement>(null)
+  const [showExternalForm, setShowExternalForm] = useState(false)
+  const [externalForm, setExternalForm] = useState<ExternalUploadForm>({
+    drawing_number: 1,
+    drawing_type: 'other',
+    caption: '',
+    file: null,
+  })
+  const [uploadingExternal, setUploadingExternal] = useState(false)
+  const [externalAnalysis, setExternalAnalysis] = useState<{ drawingId: string; analysis: ExternalAnalysis } | null>(null)
+  const [simplifyingId, setSimplifyingId] = useState<string | null>(null)
 
   const loadDrawings = useCallback(async (silent = false) => {
     if (!silent) setLoading(true)
@@ -70,6 +97,54 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
   }, [projectId])
 
   useEffect(() => { loadDrawings() }, [loadDrawings])
+
+  async function handleExternalUpload() {
+    if (!externalForm.file || !externalForm.caption.trim()) return
+    setUploadingExternal(true)
+    setError(null)
+    setExternalAnalysis(null)
+    try {
+      const formData = new FormData()
+      formData.append('image', externalForm.file)
+      formData.append('drawing_number', String(externalForm.drawing_number))
+      formData.append('drawing_type', externalForm.drawing_type)
+      formData.append('caption', externalForm.caption.trim())
+
+      const res = await fetch(`/api/patents/${projectId}/drawings/external`, {
+        method: 'POST',
+        body: formData,
+      })
+      const json = await res.json()
+      if (!res.ok) { setError(json.error ?? '업로드 실패'); return }
+
+      await loadDrawings(true)
+      setShowExternalForm(false)
+
+      if (json.data?.analysis && json.data?.drawing) {
+        setExternalAnalysis({ drawingId: json.data.drawing.id, analysis: json.data.analysis })
+      }
+    } catch {
+      setError('외부 도면 업로드 중 오류가 발생했습니다.')
+    } finally {
+      setUploadingExternal(false)
+    }
+  }
+
+  async function handleSimplify(drawingId: string) {
+    setSimplifyingId(drawingId)
+    setError(null)
+    try {
+      const res = await fetch(`/api/patents/${projectId}/drawings/${drawingId}/simplify`, { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) { setError(json.error ?? '변환 실패'); return }
+      await loadDrawings(true)
+      setExternalAnalysis(null)
+    } catch {
+      setError('특허 도면 변환 중 오류가 발생했습니다.')
+    } finally {
+      setSimplifyingId(null)
+    }
+  }
 
   // 도면 생성 후 drawing_desc 섹션 자동 재생성
   const regenerateDrawingDesc = useCallback(async () => {
@@ -106,7 +181,11 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
     setError(null)
     setDescSynced(false)
     try {
-      const res = await fetch(`/api/patents/${projectId}/drawings/auto-generate`, { method: 'POST' })
+      const res = await fetch(`/api/patents/${projectId}/drawings/auto-generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_count: targetCount }),
+      })
       if (!res.ok || !res.body) {
         const json = await res.json().catch(() => ({}))
         setError(json.error ?? 'AI 자동 생성 실패')
@@ -253,6 +332,19 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
             )}
             {descSynced ? '설명 동기화됨' : '도면 설명 재생성'}
           </Button>
+          <div className="flex items-center gap-1">
+            <Input
+              type="number"
+              min={1}
+              max={10}
+              value={targetCount}
+              onChange={(e) => setTargetCount(Math.min(10, Math.max(1, parseInt(e.target.value) || 3)))}
+              disabled={autoGenerating}
+              className="h-8 w-16 text-center text-sm"
+              title="생성할 도면 수"
+            />
+            <span className="text-xs text-gray-500">개</span>
+          </div>
           <Button
             size="sm"
             variant="default"
@@ -265,6 +357,18 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
               <Sparkles className="mr-1.5 h-3.5 w-3.5" />
             )}
             AI 자동 생성
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              setExternalForm((f) => ({ ...f, drawing_number: Math.max(1, ...(drawings.map(d => d.drawing_number))) + 1, file: null, caption: '' }))
+              setShowExternalForm(true)
+            }}
+            disabled={autoGenerating}
+          >
+            <ImagePlus className="mr-1.5 h-3.5 w-3.5" />
+            외부 도면 업로드
           </Button>
           <Button size="sm" variant="outline" onClick={() => setShowAddForm(true)} disabled={autoGenerating}>
             <Plus className="mr-1.5 h-3.5 w-3.5" />
@@ -313,6 +417,139 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
               </p>
             </>
           )}
+        </div>
+      )}
+
+      {/* 외부 도면 업로드 폼 */}
+      {showExternalForm && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 space-y-3 dark:border-emerald-900 dark:bg-emerald-950/20">
+          <h4 className="text-sm font-medium text-emerald-900 dark:text-emerald-200">외부 도면 업로드</h4>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="text-xs text-gray-500">도면 번호</label>
+              <Input
+                type="number"
+                min={1}
+                value={externalForm.drawing_number}
+                onChange={(e) => setExternalForm((f) => ({ ...f, drawing_number: parseInt(e.target.value) || 1 }))}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-gray-500">도면 유형</label>
+              <Select
+                value={externalForm.drawing_type}
+                onValueChange={(v) => setExternalForm((f) => ({ ...f, drawing_type: v as PatentDrawingType }))}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(DRAWING_TYPE_LABELS) as PatentDrawingType[]).map((t) => (
+                    <SelectItem key={t} value={t} className="text-xs">{DRAWING_TYPE_LABELS[t]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-gray-500">캡션 *</label>
+            <Input
+              value={externalForm.caption}
+              onChange={(e) => setExternalForm((f) => ({ ...f, caption: e.target.value }))}
+              placeholder="예: 시스템 전체 구성도"
+              className="h-8 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-gray-500">이미지 파일 * (PNG, JPG, WebP, SVG, PDF · 최대 10MB)</label>
+            <div className="flex items-center gap-2">
+              <input
+                ref={externalFileRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null
+                  setExternalForm((prev) => ({ ...prev, file: f }))
+                  e.target.value = ''
+                }}
+              />
+              <Button size="sm" variant="outline" type="button" onClick={() => externalFileRef.current?.click()}>
+                <Upload className="mr-1.5 h-3.5 w-3.5" />
+                파일 선택
+              </Button>
+              {externalForm.file && (
+                <span className="truncate text-xs text-gray-600 dark:text-gray-400">{externalForm.file.name}</span>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={handleExternalUpload}
+              disabled={!externalForm.caption.trim() || !externalForm.file || uploadingExternal}
+            >
+              {uploadingExternal ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Upload className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              {uploadingExternal ? 'AI 분석 중...' : '업로드 및 분석'}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowExternalForm(false)}>취소</Button>
+          </div>
+        </div>
+      )}
+
+      {/* AI 분석 결과 패널 */}
+      {externalAnalysis && (
+        <div className="rounded-lg border border-violet-200 bg-violet-50 p-4 space-y-3 dark:border-violet-900 dark:bg-violet-950/20">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-violet-900 dark:text-violet-200">AI 도면 분석 결과</h4>
+            <button
+              className="text-xs text-gray-400 hover:text-gray-600"
+              onClick={() => setExternalAnalysis(null)}
+            >
+              닫기
+            </button>
+          </div>
+          <div className="space-y-2 text-xs text-gray-700 dark:text-gray-300">
+            <div>
+              <span className="font-medium text-violet-700 dark:text-violet-300">도면 설명</span>
+              <p className="mt-0.5">{externalAnalysis.analysis.description}</p>
+            </div>
+            {externalAnalysis.analysis.components.length > 0 && (
+              <div>
+                <span className="font-medium text-violet-700 dark:text-violet-300">추출된 구성요소</span>
+                <ul className="mt-0.5 space-y-0.5">
+                  {externalAnalysis.analysis.components.map((c, i) => (
+                    <li key={i}>{c.ref_number}. {c.name} — {c.description}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div>
+              <span className="font-medium text-violet-700 dark:text-violet-300">S7 섹션 문구 제안</span>
+              <p className="mt-0.5 italic">{externalAnalysis.analysis.drawing_desc_line}</p>
+            </div>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-violet-300 text-violet-800 hover:bg-violet-100 dark:border-violet-700 dark:text-violet-300"
+              onClick={() => handleSimplify(externalAnalysis.drawingId)}
+              disabled={simplifyingId === externalAnalysis.drawingId}
+            >
+              {simplifyingId === externalAnalysis.drawingId ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Wand2 className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              {simplifyingId === externalAnalysis.drawingId ? '변환 중...' : '특허 도면으로 변환'}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -429,10 +666,16 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
                     </button>
                   )}
                   <button
-                    className="rounded-full bg-white/90 p-1.5"
-                    onClick={() => handleRegenerate(drawing)}
+                    className="rounded-full bg-white/90 p-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => generating !== drawing.drawing_number && handleRegenerate(drawing)}
+                    disabled={generating === drawing.drawing_number || autoGenerating}
+                    title="도면 재생성"
                   >
-                    <RefreshCw className="h-4 w-4 text-gray-800" />
+                    {generating === drawing.drawing_number ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-800" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 text-gray-800" />
+                    )}
                   </button>
                   <button
                     className="rounded-full bg-white/90 p-1.5"
@@ -458,11 +701,22 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
 
               {/* caption */}
               <div className="p-2">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-wrap">
                   <span className="font-mono text-xs font-bold text-gray-500">FIG.{drawing.drawing_number}</span>
                   <Badge variant="secondary" className="text-xs px-1 py-0">
                     {DRAWING_TYPE_LABELS[drawing.drawing_type]}
                   </Badge>
+                  {(drawing.prompt_used === 'external' || drawing.prompt_used === 'external_simplified') && (
+                    <Badge variant="outline" className="text-xs px-1 py-0 border-emerald-400 text-emerald-700 dark:text-emerald-400">
+                      {drawing.prompt_used === 'external_simplified' ? '변환됨' : '외부'}
+                    </Badge>
+                  )}
+                  {generating === drawing.drawing_number && (
+                    <span className="flex items-center gap-0.5 text-xs text-blue-500">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      재생성 중
+                    </span>
+                  )}
                 </div>
                 <p className="mt-0.5 truncate text-xs text-gray-700 dark:text-gray-300">{drawing.caption}</p>
               </div>

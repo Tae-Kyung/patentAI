@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { z } from 'zod'
 import { preparePatentGeneration } from '@/lib/services/patent-generator'
 import { callClaude } from '@/lib/ai/claude'
 import { generateImage } from '@/lib/ai/gemini'
@@ -6,6 +7,10 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { createSSEResponse } from '@/lib/ai/claude'
 import { errorResponse } from '@/lib/utils/api-response'
 import type { PatentDrawingType } from '@/types/database'
+
+const bodySchema = z.object({
+  target_count: z.number().int().min(1).max(10).default(3),
+})
 
 export const maxDuration = 300
 
@@ -22,17 +27,20 @@ const DRAWING_SYSTEM_PROMPT = `당신은 한국 특허청(KIPO) 기준의 특허
 - 참조번호와 한국어 명칭을 함께 표기 (예: 100-메인시스템, 110-입력모듈)
 - 단순하고 명확한 흑백 선화(line art) 스타일
 - 장식 없이 기능적 구성요소만 표현
-- KIPO 특허 도면 규격 준수`
+- 이미지 내부에 Fig. 번호, 도면 제목, 캡션 텍스트를 포함하지 마시오 (명세서 본문에서 별도 기술)
+- 워터마크, 기관명, 'KIPO', '특허청', '도상', 도장, 로고 등 일체의 기관 식별 요소를 포함하지 마시오
+- 이미지 외곽에 테두리 프레임이나 페이지 번호를 추가하지 마시오`
 
 async function planDrawings(
   title: string,
   techDomain: string,
   coreInventions: unknown,
   components: { ref_number: string; name: string; description: string | null }[],
+  targetCount: number,
 ): Promise<DrawingPlan[]> {
   const systemPrompt = `You are a Korean patent attorney specialized in creating patent drawing plans.
-Analyze the invention components and suggest 3-5 patent drawings.
-Return ONLY a valid JSON array, no markdown, no explanation.`
+Analyze the invention components and suggest exactly ${targetCount} patent drawing(s).
+Return ONLY a valid JSON array of exactly ${targetCount} items, no markdown, no explanation.`
 
   const componentList = components
     .map((c) => `${c.ref_number}. ${c.name}: ${c.description ?? ''}`)
@@ -45,7 +53,7 @@ Core inventions: ${JSON.stringify(coreInventions)}
 Components:
 ${componentList}
 
-Return a JSON array of 3-5 drawing plans:
+Return a JSON array of exactly ${targetCount} drawing plan(s):
 [
   {
     "drawing_number": 1,
@@ -80,6 +88,10 @@ export async function POST(
 
   const { supabase, project } = ctx
 
+  const body = await request.json().catch(() => ({}))
+  const parsed = bodySchema.safeParse(body)
+  const targetCount = parsed.success ? parsed.data.target_count : 3
+
   const { data: components } = await supabase
     .from('patentai_patent_components')
     .select('ref_number, name, description')
@@ -101,6 +113,7 @@ export async function POST(
         project.tech_domain ?? '',
         project.core_inventions,
         components ?? [],
+        targetCount,
       )
       yield { type: 'plan_done', data: JSON.stringify({ count: plans.length }) }
     } catch (err) {

@@ -36,6 +36,7 @@
     "password": "비밀번호",
     "confirmPassword": "비밀번호 확인",
     "name": "이름",
+    "namePlaceholder": "이름을 입력해주세요",
     "forgotPassword": "비밀번호를 잊으셨나요?",
     "noAccount": "계정이 없으신가요?",
     "hasAccount": "이미 계정이 있으신가요?",

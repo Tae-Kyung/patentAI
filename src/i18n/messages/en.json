@@ -36,6 +36,7 @@
     "password": "Password",
     "confirmPassword": "Confirm Password",
     "name": "Name",
+    "namePlaceholder": "Enter your name",
     "forgotPassword": "Forgot password?",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",

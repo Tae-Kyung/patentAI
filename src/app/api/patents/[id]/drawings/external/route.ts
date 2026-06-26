@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { analyzeImageWithVision } from '@/lib/ai/gemini'
 import { successResponse, errorResponse, handleApiError } from '@/lib/utils/api-response'
+import { stripCodeFence } from '@/lib/services/patent-generator'
 
 export const maxDuration = 120
 
@@ -113,8 +114,7 @@ export async function POST(
         const raw = await analyzeImageWithVision(buffer, mimeType, ANALYSIS_PROMPT, {
           temperature: 0.2,
         })
-        const jsonText = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
-        analysis = JSON.parse(jsonText)
+        analysis = JSON.parse(stripCodeFence(raw))
       } catch {
         // 분석 실패 시 null로 계속 진행
       }

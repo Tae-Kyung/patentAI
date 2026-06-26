@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { preparePatentGeneration } from '@/lib/services/patent-generator'
+import { preparePatentGeneration, stripCodeFence } from '@/lib/services/patent-generator'
 import { callClaude } from '@/lib/ai/claude'
 import { generateImage } from '@/lib/ai/gemini'
 import { createServiceClient } from '@/lib/supabase/service'
@@ -69,10 +69,10 @@ gemini_prompt must be in Korean, detailed enough for Gemini to draw precise KIPO
 
   const result = await callClaude(systemPrompt, userPrompt, {
     temperature: 0.3,
-    maxTokens: 2000,
+    maxTokens: 4000,
   })
 
-  const text = result.content.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
+  const text = stripCodeFence(result.content)
   return JSON.parse(text) as DrawingPlan[]
 }
 

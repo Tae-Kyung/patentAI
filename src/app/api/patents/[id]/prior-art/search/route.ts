@@ -5,6 +5,8 @@ import { successResponse, errorResponse, handleApiError } from '@/lib/utils/api-
 import { analyzeSimilarity } from '@/lib/prior-art/similarity'
 import type { PriorArtRisk } from '@/types/database'
 
+export const maxDuration = 120
+
 // POST: 선행기술 조사 실행
 export async function POST(
   _request: NextRequest,

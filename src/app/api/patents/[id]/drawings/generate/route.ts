@@ -6,6 +6,8 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { generateImage } from '@/lib/ai/gemini'
 import { successResponse, errorResponse, handleApiError } from '@/lib/utils/api-response'
 
+export const maxDuration = 120
+
 const bodySchema = z.object({
   drawing_number: z.number().int().min(1),
   drawing_type: z.enum(['system_architecture', 'flowchart', 'ui_wireframe', 'data_flow', 'other']),

@@ -4,6 +4,8 @@ import { streamClaude, createSSEResponse } from '@/lib/ai/claude'
 import { preparePrompt } from '@/lib/prompts'
 import { errorResponse } from '@/lib/utils/api-response'
 
+export const maxDuration = 120
+
 const PROMPT_KEY = 'patent_component_structuring'
 
 export async function POST(

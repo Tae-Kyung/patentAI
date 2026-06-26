@@ -96,6 +96,20 @@ export function DrawingViewer({ projectId }: DrawingViewerProps) {
     }
   }, [projectId])
 
+  // 명세서 drawing_desc에서 도면 수를 읽어 기본값 설정
+  useEffect(() => {
+    fetch(`/api/patents/${projectId}/sections/drawing_desc`, { credentials: 'same-origin' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((json) => {
+        if (!json?.data?.content) return
+        const lines = (json.data.content as string).match(/도\s*\d+/g)
+        if (lines && lines.length > 0) {
+          setTargetCount(lines.length)
+        }
+      })
+      .catch(() => {})
+  }, [projectId])
+
   useEffect(() => { loadDrawings() }, [loadDrawings])
 
   async function handleExternalUpload() {

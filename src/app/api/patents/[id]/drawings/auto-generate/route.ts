@@ -41,43 +41,40 @@ async function planDrawings(
 ): Promise<DrawingPlan[]> {
   const hasDrawingDesc = drawingDescSection && drawingDescSection.trim().length > 0
 
+  // 명세서 drawing_desc에서 도면 목록만 추출 (예: "도 1 - 시스템 구성도", "도 2 - 흐름도")
+  let drawingList = ''
+  if (hasDrawingDesc) {
+    const lines = drawingDescSection.split('\n').filter((l: string) => /도\s*\d|[Ff]ig/i.test(l))
+    drawingList = lines.length > 0
+      ? lines.map((l: string) => l.trim()).join('\n')
+      : drawingDescSection.slice(0, 500) // 패턴 매칭 실패 시 앞부분만
+  }
+
   const systemPrompt = hasDrawingDesc
-    ? `You are a Korean patent attorney. The patent specification already describes drawings in the "도면의 간단한 설명" section.
-Create drawing plans that EXACTLY match the drawings described in the specification.
-The number of drawings, their order, captions, and content must be consistent with the specification.
+    ? `You are a Korean patent attorney. Create drawing plans matching the specification's drawing list below.
 Return ONLY a valid JSON array, no markdown, no explanation.`
-    : `You are a Korean patent attorney specialized in creating patent drawing plans.
-Analyze the invention components and suggest exactly ${targetCount} patent drawing(s).
+    : `You are a Korean patent attorney. Suggest exactly ${targetCount} patent drawing(s).
 Return ONLY a valid JSON array of exactly ${targetCount} items, no markdown, no explanation.`
 
   const componentList = components
-    .map((c) => `${c.ref_number}. ${c.name}: ${c.description ?? ''}`)
+    .map((c) => `${c.ref_number}. ${c.name}: ${c.description?.slice(0, 80) ?? ''}`)
     .join('\n')
 
-  const drawingDescBlock = hasDrawingDesc
-    ? `\n\n## 명세서 "도면의 간단한 설명" 섹션 (반드시 이 내용과 일치하는 도면을 생성하세요)\n${drawingDescSection}`
+  const drawingDescBlock = drawingList
+    ? `\n\n## 명세서 도면 목록 (이 목록과 일치하는 도면 생성)\n${drawingList}`
     : ''
 
-  const userPrompt = `Invention: ${title}
-Tech domain: ${techDomain}
-Core inventions: ${JSON.stringify(coreInventions)}
+  const userPrompt = `${title} | ${techDomain}
 
 Components:
 ${componentList}${drawingDescBlock}
 
-Return a JSON array of drawing plan(s)${hasDrawingDesc ? ' matching the specification above' : ''}:
-[
-  {
-    "drawing_number": 1,
-    "drawing_type": "system_architecture",
-    "caption": "시스템 전체 구성도",
-    "gemini_prompt": "한국 특허 도면: 시스템 전체 구성도. 흑백 선화 스타일. 모든 텍스트와 레이블은 한국어로 작성. 구성요소: 100-메인시스템, 110-입력모듈, 120-처리모듈, 130-출력모듈. 각 박스를 화살표로 연결하고 참조번호와 한국어 명칭을 함께 표기."
-  }
-]
+JSON array format:
+[{"drawing_number":1,"drawing_type":"system_architecture","caption":"시스템 구성도","gemini_prompt":"흑백 선화. 한국어 레이블. 참조번호 포함. 구성요소 간 화살표 연결."}]
 
-drawing_type must be one of: system_architecture, flowchart, ui_wireframe, data_flow, other
-caption must be in Korean (20 chars max).
-gemini_prompt must be in Korean, concise (max 300 chars), describing the diagram layout, components with reference numbers, and connection style. Do NOT write lengthy descriptions.`
+drawing_type: system_architecture | flowchart | ui_wireframe | data_flow | other
+caption: Korean, max 20 chars.
+gemini_prompt: Korean, max 200 chars, diagram layout + reference numbers + connection style only.`
 
   const result = await callClaude(systemPrompt, userPrompt, {
     temperature: 0.3,

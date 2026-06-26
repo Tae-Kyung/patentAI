@@ -1,10 +1,19 @@
 import { redis, CACHE_KEYS, CACHE_TTL } from '@/lib/redis'
 import { createServiceClient } from '@/lib/supabase/service'
+import { getClaudeModel } from '@/lib/ai/model-settings'
 import type { PatentaiPrompt } from '@/types/database'
 
 // patentai_prompts 테이블의 Row 타입을 Prompt로 사용
 type Prompt = PatentaiPrompt
 type PromptCategory = string
+
+// 폐기된 모델 → 현행 모델 매핑
+const DEPRECATED_MODEL_MAP: Record<string, string> = {
+  'claude-sonnet-4-20250514': 'claude-sonnet-4-6',
+  'claude-opus-4-20250514': 'claude-opus-4-8',
+  'gemini-3-pro-image-preview': 'gemini-2.5-flash-image',
+  'gemini-2.0-flash': 'gemini-2.5-flash',
+}
 
 export interface PreparedPrompt {
   systemPrompt: string
@@ -80,10 +89,13 @@ export async function preparePrompt(
     return null
   }
 
+  // 폐기된 모델 ID가 DB에 남아있으면 현행 모델로 자동 매핑
+  const resolvedModel = DEPRECATED_MODEL_MAP[prompt.model] ?? prompt.model
+
   return {
     systemPrompt: renderTemplate(prompt.system_prompt, variables),
     userPrompt: renderTemplate(prompt.user_prompt_template, variables),
-    model: prompt.model,
+    model: resolvedModel,
     temperature: prompt.temperature,
     maxTokens: prompt.max_tokens,
     creditCost: prompt.credit_cost ?? 1,

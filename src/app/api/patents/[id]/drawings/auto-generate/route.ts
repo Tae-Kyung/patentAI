@@ -36,9 +36,17 @@ async function planDrawings(
   techDomain: string,
   coreInventions: unknown,
   components: { ref_number: string; name: string; description: string | null }[],
+  drawingDescSection: string | null,
   targetCount: number,
 ): Promise<DrawingPlan[]> {
-  const systemPrompt = `You are a Korean patent attorney specialized in creating patent drawing plans.
+  const hasDrawingDesc = drawingDescSection && drawingDescSection.trim().length > 0
+
+  const systemPrompt = hasDrawingDesc
+    ? `You are a Korean patent attorney. The patent specification already describes drawings in the "도면의 간단한 설명" section.
+Create drawing plans that EXACTLY match the drawings described in the specification.
+The number of drawings, their order, captions, and content must be consistent with the specification.
+Return ONLY a valid JSON array, no markdown, no explanation.`
+    : `You are a Korean patent attorney specialized in creating patent drawing plans.
 Analyze the invention components and suggest exactly ${targetCount} patent drawing(s).
 Return ONLY a valid JSON array of exactly ${targetCount} items, no markdown, no explanation.`
 
@@ -46,14 +54,18 @@ Return ONLY a valid JSON array of exactly ${targetCount} items, no markdown, no 
     .map((c) => `${c.ref_number}. ${c.name}: ${c.description ?? ''}`)
     .join('\n')
 
+  const drawingDescBlock = hasDrawingDesc
+    ? `\n\n## 명세서 "도면의 간단한 설명" 섹션 (반드시 이 내용과 일치하는 도면을 생성하세요)\n${drawingDescSection}`
+    : ''
+
   const userPrompt = `Invention: ${title}
 Tech domain: ${techDomain}
 Core inventions: ${JSON.stringify(coreInventions)}
 
 Components:
-${componentList}
+${componentList}${drawingDescBlock}
 
-Return a JSON array of exactly ${targetCount} drawing plan(s):
+Return a JSON array of drawing plan(s)${hasDrawingDesc ? ' matching the specification above' : ''}:
 [
   {
     "drawing_number": 1,
@@ -101,6 +113,14 @@ export async function POST(
     return errorResponse('STEP 2 구성요소가 없습니다. 먼저 구성요소를 생성해주세요.', 400)
   }
 
+  // 명세서 "도면의 간단한 설명" 섹션 조회
+  const { data: drawingDescSection } = await supabase
+    .from('patentai_patent_sections')
+    .select('content')
+    .eq('project_id', id)
+    .eq('section_type', 'drawing_desc')
+    .single()
+
   async function* generate() {
     // 1. 도면 계획 수립
     yield { type: 'plan_start', data: '도면 계획을 수립하는 중...' }
@@ -112,6 +132,7 @@ export async function POST(
         project.tech_domain ?? '',
         project.core_inventions,
         components ?? [],
+        drawingDescSection?.content ?? null,
         targetCount,
       )
       yield { type: 'plan_done', data: JSON.stringify({ count: plans.length }) }

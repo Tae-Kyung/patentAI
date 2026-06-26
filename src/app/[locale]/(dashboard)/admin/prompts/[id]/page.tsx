@@ -55,7 +55,7 @@ export default function PromptEditPage({ params }: PageProps) {
     category: 'patent',
     system_prompt: '',
     user_prompt_template: '',
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     temperature: 0.3,
     max_tokens: 2000,
     credit_cost: 1,
@@ -254,16 +254,17 @@ export default function PromptEditPage({ params }: PageProps) {
             <div className="space-y-1.5">
               <Label>AI 모델</Label>
               <Select
-                value={prompt.model ?? 'claude-sonnet-4-20250514'}
+                value={prompt.model ?? 'claude-sonnet-4-6'}
                 onValueChange={(v) => setPrompt({ ...prompt, model: v })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="claude-sonnet-4-20250514">Claude Sonnet 4 (최신)</SelectItem>
-                  <SelectItem value="claude-opus-4-20250514">Claude Opus 4</SelectItem>
+                  <SelectItem value="claude-sonnet-4-6">Claude Sonnet 4.6</SelectItem>
+                  <SelectItem value="claude-opus-4-8">Claude Opus 4.8</SelectItem>
                   <SelectItem value="claude-haiku-4-5-20251001">Claude Haiku 4.5</SelectItem>
+                  <SelectItem value="claude-fable-5">Claude Fable 5</SelectItem>
                 </SelectContent>
               </Select>
             </div>

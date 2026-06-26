@@ -68,7 +68,6 @@ caption must be in Korean (20 chars max).
 gemini_prompt must be in Korean, detailed enough for Gemini to draw precise KIPO-standard patent diagram with ALL text, labels, and component names in Korean.`
 
   const result = await callClaude(systemPrompt, userPrompt, {
-    model: 'claude-sonnet-4-20250514',
     temperature: 0.3,
     maxTokens: 2000,
   })
@@ -136,7 +135,7 @@ export async function POST(
         const { imageData, mimeType } = await generateImage(
           DRAWING_SYSTEM_PROMPT,
           plan.gemini_prompt,
-          { model: 'gemini-3-pro-image-preview', temperature: 0.4 },
+          { temperature: 0.4 },
         )
 
         const filename = `${id}/${Date.now()}_fig${plan.drawing_number}.png`

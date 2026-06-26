@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 import { successResponse, errorResponse } from '@/lib/utils/api-response'
+import { getOpenAIModel } from '@/lib/ai/model-settings'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
 
@@ -50,8 +51,9 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    const ocrModel = await getOpenAIModel()
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: ocrModel,
       max_tokens: 4096,
       messages: [
         {

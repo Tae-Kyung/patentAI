@@ -711,6 +711,20 @@
       "syncCacheSuccess": "Cache synced successfully",
       "testSuccess": "Prompt test completed successfully"
     },
+    "aiModels": {
+      "title": "AI Model Settings",
+      "description": "Configure default models for each AI provider. Changes take effect immediately for all AI calls.",
+      "fetchFailed": "Failed to load AI model settings.",
+      "save": "Save",
+      "reset": "Reset",
+      "saveSuccess": "AI model settings have been saved.",
+      "saveFailed": "Failed to save AI model settings.",
+      "modelSelect": "Select Model",
+      "selectModel": "Choose a model",
+      "infoMessage": "Models configured here are applied as defaults for all AI features including patent analysis, claims generation, specification writing, drawing generation, and OCR. Per-prompt model overrides can be set in Prompt Management.",
+      "pendingChange": "Pending change: {from} → {to}",
+      "lastUpdated": "Last updated"
+    },
     "programs": {
       "title": "Program Management",
       "description": "Manage startup programs.",

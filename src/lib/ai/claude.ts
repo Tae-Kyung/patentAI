@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { getClaudeModel } from './model-settings'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -27,8 +28,9 @@ export async function callClaude(
   userPrompt: string,
   options: ClaudeOptions = {}
 ): Promise<ClaudeResponse> {
+  const defaultModel = await getClaudeModel()
   const {
-    model = 'claude-sonnet-4-20250514',
+    model = defaultModel,
     temperature = 0.7,
     maxTokens = 2000,
   } = options
@@ -68,8 +70,9 @@ export async function* streamClaude(
   userPrompt: string,
   options: ClaudeOptions = {}
 ): AsyncGenerator<{ type: string; data: string }, void, unknown> {
+  const defaultModel = await getClaudeModel()
   const {
-    model = 'claude-sonnet-4-20250514',
+    model = defaultModel,
     temperature = 0.7,
     maxTokens = 2000,
   } = options

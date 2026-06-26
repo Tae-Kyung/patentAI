@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { getOpenAIModel } from './model-settings'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -28,8 +29,9 @@ export async function callOpenAI(
   userPrompt: string,
   options: OpenAIOptions = {}
 ): Promise<OpenAIResponse> {
+  const defaultModel = await getOpenAIModel()
   const {
-    model = 'gpt-4o',
+    model = defaultModel,
     temperature = 0.7,
     maxTokens = 2000,
   } = options
@@ -66,8 +68,9 @@ export async function* streamOpenAI(
   userPrompt: string,
   options: OpenAIOptions = {}
 ): AsyncGenerator<{ type: string; data: string }, void, unknown> {
+  const defaultModel = await getOpenAIModel()
   const {
-    model = 'gpt-4o',
+    model = defaultModel,
     temperature = 0.7,
     maxTokens = 2000,
   } = options

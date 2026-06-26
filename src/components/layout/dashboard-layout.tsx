@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Coins,
   FileText,
+  Bot,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -46,6 +47,7 @@ const USER_NAV: NavItem[] = [
 const ADMIN_ONLY_NAV: NavItem[] = [
   { href: '/admin', label: '대시보드', icon: <Shield className="h-5 w-5" />, exactMatch: true },
   { href: '/admin/prompts', label: '프롬프트 관리', icon: <MessageSquare className="h-5 w-5" /> },
+  { href: '/admin/ai-models', label: 'AI 모델 설정', icon: <Bot className="h-5 w-5" /> },
   { href: '/admin/credits', label: '크레딧 관리', icon: <Coins className="h-5 w-5" /> },
 ]
 

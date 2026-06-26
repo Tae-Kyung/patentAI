@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai'
+import { getGeminiModel, getGeminiImageModel } from './model-settings'
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY || '' })
 
@@ -35,8 +36,9 @@ export async function generateImage(
   userPrompt: string,
   options: GeminiOptions = {}
 ): Promise<GeminiImageResponse> {
+  const defaultImageModel = await getGeminiImageModel()
   const {
-    model = 'gemini-2.5-flash-image',
+    model = defaultImageModel,
     temperature = 0.7,
   } = options
 
@@ -89,7 +91,8 @@ export async function analyzeImageWithVision(
   prompt: string,
   options: GeminiOptions = {}
 ): Promise<string> {
-  const { model = 'gemini-2.5-flash', temperature = 0.3 } = options
+  const defaultModel = await getGeminiModel()
+  const { model = defaultModel, temperature = 0.3 } = options
 
   const response = await ai.models.generateContent({
     model,
@@ -122,7 +125,8 @@ export async function simplifyDrawingToPatentStyle(
   userPrompt: string,
   options: GeminiOptions = {}
 ): Promise<GeminiImageResponse> {
-  const { model = 'gemini-2.5-flash-image', temperature = 0.4 } = options
+  const defaultImageModel = await getGeminiImageModel()
+  const { model = defaultImageModel, temperature = 0.4 } = options
 
   const fullPrompt = systemPrompt ? `${systemPrompt}\n\n---\n\n${userPrompt}` : userPrompt
 
@@ -173,8 +177,9 @@ export async function callGemini(
   userPrompt: string,
   options: GeminiOptions = {}
 ): Promise<GeminiResponse> {
+  const defaultModel = await getGeminiModel()
   const {
-    model = 'gemini-2.5-flash',
+    model = defaultModel,
     temperature = 0.7,
     maxTokens = 2000,
   } = options
@@ -218,8 +223,9 @@ export async function* streamGemini(
   userPrompt: string,
   options: GeminiOptions = {}
 ): AsyncGenerator<{ type: string; data: string }, void, unknown> {
+  const defaultModel = await getGeminiModel()
   const {
-    model = 'gemini-2.5-flash',
+    model = defaultModel,
     temperature = 0.7,
     maxTokens = 2000,
   } = options

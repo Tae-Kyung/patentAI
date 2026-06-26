@@ -11,7 +11,7 @@ const createPromptSchema = z.object({
   category: z.string().default('patent'),
   system_prompt: z.string().min(1),
   user_prompt_template: z.string().min(1),
-  model: z.string().default('claude-sonnet-4-20250514'),
+  model: z.string().default('claude-sonnet-4-6'),
   temperature: z.number().min(0).max(2).default(0.7),
   max_tokens: z.number().min(100).max(8000).default(2000),
   credit_cost: z.number().int().min(0).max(100).default(1),

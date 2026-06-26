@@ -1751,6 +1751,33 @@ export interface Database {
         }
         Relationships: []
       }
+      patentai_ai_settings: {
+        Row: {
+          key: string
+          value: string
+          label: string
+          description: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          key: string
+          value: string
+          label: string
+          description?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          key?: string
+          value?: string
+          label?: string
+          description?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

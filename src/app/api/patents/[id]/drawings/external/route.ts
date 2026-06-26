@@ -111,7 +111,6 @@ export async function POST(
     if (mimeType !== 'application/pdf') {
       try {
         const raw = await analyzeImageWithVision(buffer, mimeType, ANALYSIS_PROMPT, {
-          model: 'gemini-2.5-flash',
           temperature: 0.2,
         })
         const jsonText = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')

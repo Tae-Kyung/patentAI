@@ -27,11 +27,27 @@ export interface AIResponse {
   provider: AIProvider
 }
 
-// 기본 모델 설정
-const DEFAULT_MODELS: Record<AIProvider, string> = {
-  claude: 'claude-sonnet-4-20250514',
+import { getClaudeModel, getGeminiModel, getOpenAIModel } from './model-settings'
+
+// 기본 모델 설정 (DB 설정 로드 전 폴백)
+const FALLBACK_MODELS: Record<AIProvider, string> = {
+  claude: 'claude-sonnet-4-6',
   openai: 'gpt-4o',
   gemini: 'gemini-2.5-flash',
+}
+
+// DB에서 관리자 설정 모델을 로드
+async function getDefaultModels(): Promise<Record<AIProvider, string>> {
+  try {
+    const [claude, gemini, openai] = await Promise.all([
+      getClaudeModel(),
+      getGeminiModel(),
+      getOpenAIModel(),
+    ])
+    return { claude, gemini, openai }
+  } catch {
+    return { ...FALLBACK_MODELS }
+  }
 }
 
 // 환경변수에서 기본 프로바이더 결정
@@ -51,11 +67,13 @@ function detectProviderFromModel(model: string): AIProvider | null {
 }
 
 // 프로바이더 + 모델 결정 (모델에서 프로바이더 감지, 해당 프로바이더 불가 시 대체)
-function resolveProviderAndModel(options: AIOptions): { provider: AIProvider; model: string } {
+async function resolveProviderAndModel(options: AIOptions): Promise<{ provider: AIProvider; model: string }> {
+  const defaultModels = await getDefaultModels()
+
   if (options.provider) {
     return {
       provider: options.provider,
-      model: options.model || DEFAULT_MODELS[options.provider],
+      model: options.model || defaultModels[options.provider],
     }
   }
 
@@ -66,11 +84,11 @@ function resolveProviderAndModel(options: AIOptions): { provider: AIProvider; mo
     }
     // 감지된 프로바이더가 불가하면 기본 프로바이더 + 기본 모델 사용
     const fallback = getDefaultProvider()
-    return { provider: fallback, model: DEFAULT_MODELS[fallback] }
+    return { provider: fallback, model: defaultModels[fallback] }
   }
 
   const provider = getDefaultProvider()
-  return { provider, model: DEFAULT_MODELS[provider] }
+  return { provider, model: defaultModels[provider] }
 }
 
 // API 키 존재 여부 확인
@@ -95,7 +113,7 @@ export async function callAI(
   userPrompt: string,
   options: AIOptions = {}
 ): Promise<AIResponse> {
-  const { provider, model } = resolveProviderAndModel(options)
+  const { provider, model } = await resolveProviderAndModel(options)
 
   if (!isProviderAvailable(provider)) {
     throw new Error(`${provider} API key is not configured`)
@@ -138,7 +156,7 @@ export async function* streamAI(
   userPrompt: string,
   options: AIOptions = {}
 ): AsyncGenerator<{ type: string; data: string }, void, unknown> {
-  const { provider, model } = resolveProviderAndModel(options)
+  const { provider, model } = await resolveProviderAndModel(options)
 
   if (!isProviderAvailable(provider)) {
     throw new Error(`${provider} API key is not configured`)

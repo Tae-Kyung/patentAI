@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { searchKipris, type KiprisPatent } from './kipris'
 import { searchUsptoPatents, type UsptoPatent } from './uspto'
 import type { PriorArtRisk } from '@/types/database'
+import { getClaudeModel } from '@/lib/ai/model-settings'
 
 export interface SimilarityResult {
   source_db: 'kipris' | 'uspto'
@@ -52,7 +53,7 @@ similarity_score 기준:
 - 0.4 미만: low (간접 유사)`
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: await getClaudeModel(),
     max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
   })

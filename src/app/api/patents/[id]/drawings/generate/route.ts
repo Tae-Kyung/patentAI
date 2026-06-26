@@ -62,7 +62,6 @@ export async function POST(
 
     // Gemini로 이미지 생성
     const { imageData, mimeType } = await generateImage(DRAWING_SYSTEM_PROMPT, userPrompt, {
-      model: 'gemini-3-pro-image-preview',
       temperature: 0.4,
     })
 

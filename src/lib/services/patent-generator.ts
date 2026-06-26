@@ -80,7 +80,8 @@ export async function preparePatentGeneration(
 }
 
 /**
- * JSON 응답에서 코드 펜스 제거
+ * JSON 응답에서 코드 펜스 제거 및 JSON 추출
+ * 모델이 JSON 앞뒤에 설명 텍스트를 붙이는 경우도 처리
  */
 export function stripCodeFence(content: string): string {
   const trimmed = content.trim()
@@ -88,5 +89,20 @@ export function stripCodeFence(content: string): string {
   const withoutOpen = trimmed.replace(/^```(?:\w+)?\s*\n?/, '')
   // Remove closing fence
   const withoutClose = withoutOpen.replace(/\n?```\s*$/, '')
-  return withoutClose.trim()
+  const stripped = withoutClose.trim()
+
+  // 이미 JSON으로 시작하면 그대로 반환
+  if (stripped.startsWith('{') || stripped.startsWith('[')) {
+    return stripped
+  }
+
+  // JSON 앞에 설명 텍스트가 있는 경우: 가장 바깥쪽 JSON 객체/배열 추출
+  const objMatch = stripped.match(/\{[\s\S]*\}/)
+  const arrMatch = stripped.match(/\[[\s\S]*\]/)
+
+  if (objMatch && arrMatch) {
+    // 더 먼저 나오는 것을 선택
+    return objMatch.index! < arrMatch.index! ? objMatch[0] : arrMatch[0]
+  }
+  return objMatch?.[0] ?? arrMatch?.[0] ?? stripped
 }

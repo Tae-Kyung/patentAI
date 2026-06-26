@@ -83,7 +83,7 @@ export async function POST(
 
       yield { type: 'result', data: JSON.stringify(json) }
     } catch (err) {
-      console.error('Analysis JSON parse error:', err)
+      console.error('Analysis JSON parse error:', err, '\nRaw text:', fullText.slice(0, 500))
       yield { type: 'error', data: '분석 결과 파싱에 실패했습니다.' }
     }
 

@@ -20,6 +20,16 @@ const SECTION_PROMPT_MAP: Record<PatentSectionType, string> = {
   abstract: 'patent_section_abstract',
 }
 
+// 섹션별 최소 maxTokens 하한 (DB 설정이 너무 낮을 경우 보장)
+const SECTION_MIN_TOKENS: Partial<Record<PatentSectionType, number>> = {
+  solution: 8000,
+  detailed_desc: 8000,
+  background: 4000,
+  drawing_desc: 4000,
+  problem: 4000,
+  effect: 4000,
+}
+
 
 const bodySchema = z.object({
   section_type: z.enum([
@@ -123,10 +133,13 @@ export async function POST(
   async function* generate() {
     let fullText = ''
 
+    const minTokens = SECTION_MIN_TOKENS[sectionType] ?? 2000
+    const effectiveMaxTokens = Math.max(prepared!.maxTokens, minTokens)
+
     for await (const event of streamClaude(prepared!.systemPrompt, prepared!.userPrompt, {
       model: prepared!.model,
       temperature: prepared!.temperature,
-      maxTokens: prepared!.maxTokens,
+      maxTokens: effectiveMaxTokens,
     })) {
       if (event.type === 'text') {
         fullText += event.data

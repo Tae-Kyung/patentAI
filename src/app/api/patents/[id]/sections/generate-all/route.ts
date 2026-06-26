@@ -7,6 +7,16 @@ import type { PatentSectionType } from '@/types/database'
 
 export const maxDuration = 300 // 5분 — 9개 섹션 병렬 생성
 
+// 섹션별 최소 maxTokens 하한
+const SECTION_MIN_TOKENS: Partial<Record<PatentSectionType, number>> = {
+  solution: 8000,
+  detailed_desc: 8000,
+  background: 4000,
+  drawing_desc: 4000,
+  problem: 4000,
+  effect: 4000,
+}
+
 const SECTION_PROMPT_MAP: Record<PatentSectionType, string> = {
   title: 'patent_section_title',
   tech_field: 'patent_section_tech_field',
@@ -84,10 +94,13 @@ async function generateOneSection(
 
   let fullText = ''
   try {
+    const minTokens = SECTION_MIN_TOKENS[sectionType] ?? 2000
+    const effectiveMaxTokens = Math.max(prepared.maxTokens, minTokens)
+
     for await (const event of streamClaude(prepared.systemPrompt, prepared.userPrompt, {
       model: prepared.model,
       temperature: prepared.temperature,
-      maxTokens: prepared.maxTokens,
+      maxTokens: effectiveMaxTokens,
     })) {
       if (event.type === 'text') fullText += event.data
     }

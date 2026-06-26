@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,6 +26,15 @@ export function AnalysisResult({ projectId, initialData, onAnalysisDone }: Analy
   const [progress, setProgress] = useState('')
   const [result, setResult] = useState<AnalysisData | null>(initialData ?? null)
   const [error, setError] = useState<string | null>(null)
+  const autoStarted = useRef(false)
+
+  // initialData가 null이면 자동 분석 시작 (새 입력 후 진입 시)
+  useEffect(() => {
+    if (!initialData && !result && !isAnalyzing && !autoStarted.current) {
+      autoStarted.current = true
+      startAnalysis()
+    }
+  }, [initialData])
 
   const startAnalysis = useCallback(async () => {
     setIsAnalyzing(true)

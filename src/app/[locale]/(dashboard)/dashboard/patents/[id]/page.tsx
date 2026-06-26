@@ -273,7 +273,10 @@ export default function PatentWorkPage({ params }: PageProps) {
         {view === 'step1_input' && (
           <InputForm
             projectId={id}
-            onInputSaved={() => setView('step1_analysis')}
+            onInputSaved={() => {
+              setAnalysisData(null) // 이전 분석 결과 클리어
+              setView('step1_analysis')
+            }}
           />
         )}
 

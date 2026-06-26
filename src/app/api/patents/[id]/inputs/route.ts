@@ -32,6 +32,13 @@ export async function POST(
     const parsed = createInputSchema.safeParse(body)
     if (!parsed.success) return errorResponse(parsed.error.issues[0].message, 400)
 
+    // 기존 텍스트 입력 삭제 후 새로 저장 (교체 방식)
+    await supabase
+      .from('patentai_patent_inputs')
+      .delete()
+      .eq('project_id', id)
+      .eq('type', 'text')
+
     const { data, error } = await supabase
       .from('patentai_patent_inputs')
       .insert({ project_id: id, type: 'text', content: parsed.data.content })

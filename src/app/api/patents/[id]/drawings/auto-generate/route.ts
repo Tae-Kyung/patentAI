@@ -77,11 +77,11 @@ Return a JSON array of drawing plan(s)${hasDrawingDesc ? ' matching the specific
 
 drawing_type must be one of: system_architecture, flowchart, ui_wireframe, data_flow, other
 caption must be in Korean (20 chars max).
-gemini_prompt must be in Korean, detailed enough for Gemini to draw precise KIPO-standard patent diagram with ALL text, labels, and component names in Korean.`
+gemini_prompt must be in Korean, concise (max 300 chars), describing the diagram layout, components with reference numbers, and connection style. Do NOT write lengthy descriptions.`
 
   const result = await callClaude(systemPrompt, userPrompt, {
     temperature: 0.3,
-    maxTokens: 4000,
+    maxTokens: 8000,
   })
 
   const text = stripCodeFence(result.content)
